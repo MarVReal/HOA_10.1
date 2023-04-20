@@ -1,0 +1,15 @@
+- name: install_sw_Debian | Install Kibana SW
+  apt:
+    name:
+      - kibana
+    update_cache: true
+    state: latest
+
+- name: install_sw_Debian | Open Firewall Ports For Non-Localhost
+  ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: tcp
+  loop:
+    - "{{ elastic_port }}"
+    - "{{ kibana_port }}"

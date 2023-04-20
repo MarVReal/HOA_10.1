@@ -1,0 +1,97 @@
+---
+- name: Import the Elastic Key (Ubuntu)
+  apt_key:
+    url: https://artifacts.elastic.co/GPG-KEY-elasticsearch
+    state: present
+  when: ansible_distribution == "Ubuntu"
+
+- name: Import Elastic Key (CentOS)
+  become: true
+  rpm_key:
+    key: "https://artifacts.elastic.co/GPG-KEY-elasticsearch"
+    state: present
+  when: ansible_distribution == "CentOS"
+
+- name: install and add elastic apt repo (Ubuntu)
+  lineinfile:
+    path: /etc/apt/sources.list.d/elastic.list
+    state: present
+    create: true
+    backup: true
+    mode: 0644
+    owner: root
+    group: root
+    line: "deb https://artifacts.elastic.co/packages/8.x/apt stable main"
+  when: ansible_distribution == "Ubuntu"
+
+- name: install and add elastic rpm repo (CentOS)
+  lineinfile:
+    path: /etc/yum.repos.d/elastic.repo
+    state: present
+    create: true
+    backup: true
+    mode: 0644
+    owner: root
+    group: root
+    line: "baseurl=https://artifacts.elastic.co/packages/8.x/yum"
+  when: ansible_distribution == "CentOS"
+
+- name: install and add curator apt repo (Ubuntu)
+  lineinfile:
+    path: /etc/apt/sources.list.d/elastic.list
+    state: present
+    create: true
+    backup: true
+    mode: 0644
+    owner: root
+    group: root
+    line: "deb [arch=amd64] https://packages.elastic.co/curator/5/debian stable main"
+  when: ansible_distribution == "Ubuntu"
+
+- name: install and add curator rpm repo
+  lineinfile:
+    path: /etc/yum.repos.d/elastic.rpo
+    state: present
+    create: true
+    backup: true
+    mode: 0644
+    owner: root
+    group: root
+    line: "baseurl=https://packages.elastic.co/curator/5/centos/7"
+  when: ansible_distribution == "CentOS"
+
+- name: install elasticsearch (Ubuntu)
+  apt:
+    name:
+      - elasticsearch
+      - elasticsearch-curator
+    state: present
+    update_cache: yes
+  when: ansible_distribution == "Ubuntu"
+
+- name: install elasticsearch (CentOS)
+  become: true
+  yum:
+    name:
+      - elasticsearch
+    enablerepo: elasticsearch
+    state: present
+    update_cache: yes
+  when: ansible_distribution == "CentOS"
+
+- name: reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: yes
+
+- name: enable service elasticsearch and ensure it is not masked
+  systemd:
+    name: elasticsearch
+    enabled: yes
+    masked: no
+
+- name: Start Elasticsearch after Bootup (CentOS)
+  become: true
+  shell: |
+    /bin/systemctl daemon-reload
+    /bin/systemctl enable elasticsearch.service
+  when: ansible_distribution == "CentOS"
