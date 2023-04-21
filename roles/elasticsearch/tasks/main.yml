@@ -79,19 +79,59 @@
     update_cache: yes
   when: ansible_distribution == "CentOS"
 
-- name: reload systemd
-  ansible.builtin.systemd:
-    daemon_reload: yes
+- name: Configuring cluster.name
+  replace:
+    path: /etc/elasticsearch/elasticsearch.yml
+    regexp: '#cluster.name: my-application'
+    replace: 'cluster.name: Villareal_cluster'
 
-- name: enable service elasticsearch and ensure it is not masked
-  systemd:
+- name: Configuring node.name
+  replace:
+    path: /etc/elasticsearch/elasticsearch.yml
+    regexp: '#node.name: node-1'
+    replace: 'node.name: node-1'
+
+- name: Configuring http.port
+  replace:
+    path: /etc/elasticsearch/elasticsearch.yml
+    regexp: '#http.port: 9200'
+    replace: 'http.port: 9200'
+
+- name: Configuring network.host
+  replace:
+    path: /etc/elasticsearch/elasticsearch.yml
+    regexp: 'xpack.security.enabled: true'
+    replace: 'xpack.security.enabled: false'
+
+- name: Enabling ElasticSearch Service
+  service:
     name: elasticsearch
     enabled: yes
-    masked: no
 
-- name: Start Elasticsearch after Bootup (CentOS)
+- name: Modifying service file
+  replace:
+    path: /usr/lib/systemd/system/elasticsearch.service
+    regexp: "TimeoutStartSec=75"
+    replace: "TimeoutStartSec=300"
+
+- name: Opening port for elastic search (CentOS)
   become: true
   shell: |
-    /bin/systemctl daemon-reload
-    /bin/systemctl enable elasticsearch.service
+    firewall-cmd  --permanent --zone=public -add-port=9200/tcp
+    sleep 10
+    firewall-cmd --reload
   when: ansible_distribution == "CentOS"
+
+- name: Opening port for elastic search (Ubuntu)
+  become: true
+  ufw:
+    rule: allow
+    port: "9200"
+    comment: "Allow Elasticsearch"
+  when: ansible_distribution == "Ubuntu"
+
+- name: Enabling elasticseach service
+  shell: |
+    systemctl enable elasticsearch.service
+    sleep 10
+    systemctl start elasticsearch.service
