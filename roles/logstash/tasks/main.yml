@@ -14,21 +14,29 @@
     owner: root
     group: root
     mode: 0777
-  when: ansible_distribution == "CentOS"
+  when: ansible_distribution == "Ubuntu"
 
 - name: Installing Logstash
   package:
     name: logstash
     state: latest
 
-- name: Opening port for Logstash
+- name: Opening port for Logstash (CentOS)
   become: true
-  shell: |
-    firewall-cmd --permanent --zone=public --add-port=9600/tcp
-    sleep 10
-    firewall-cmd --reload
+  firewalld:
+    port: 9600/tcp
+    permanent: true
+    state: enabled
+  when: ansible_distribution == "CentOS"
 
-- name: Making sure that logstash is stared and enabled
+- name: Opening port for Logstash (Ubuntu)
+  become: true
+  ufw:
+    rule: allow
+    port: "9600"
+  when: ansible_distribution == "Ubuntu"
+
+- name: Making sure that logstash is started and enabled
   service:
     name: logstash
     state: restarted
