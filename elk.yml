@@ -1,44 +1,44 @@
 ---
-#- hosts: all
-#  become: true
-#  tasks:
-#  - name: Install Packages (Ubuntu)
-#    apt:
-#      name:
-#        - apt-transport-https
-#        - openssl
-#        - default-jdk
-#        - python3-firewall
-#      state: present
-#      update_cache: yes
-#    when: ansible_distribution == "Ubuntu"
-#
-#  - name: Install Packages (CentOS)
-#    yum:
-#      name:
-#       - yum-utils
-#       - openssl
-#       - java-11-openjdk
-#       - java-11-openjdk-devel
-#       - firewalld
-#      state: present
-#      update_cache: yes
-#    when: ansible_distribution == "CentOS"
+- hosts: all
+  become: true
+  tasks:
+  - name: Install Packages (Ubuntu)
+    apt:
+      name:
+        - apt-transport-https
+        - openssl
+        - default-jdk
+        - python3-firewall
+      state: present
+      update_cache: yes
+    when: ansible_distribution == "Ubuntu"
 
-#- hosts: elasticsearch
-#  tags: es
-#  become: true
-#  roles:
-#   - elasticsearch
+  - name: Install Packages (CentOS)
+    yum:
+      name:
+       - yum-utils
+       - openssl
+       - java-11-openjdk
+       - java-11-openjdk-devel
+       - firewalld
+      state: present
+      update_cache: yes
+    when: ansible_distribution == "CentOS"
 
-#- hosts: kibana
-#  tags: kibana
-#  become: true
-#  roles:
-#   - kibana
+- hosts: elasticsearch
+  tags: es
+  become: true
+  roles:
+   - elasticsearch
 
- - hosts: logstash
-   tags: logstash
-   become: true
-   roles:
-     - logstash
+- hosts: kibana
+  tags: kibana
+  become: true
+  roles:
+   - kibana
+
+- hosts: logstash
+  tags: logstash
+  become: true
+  roles:
+   - logstash
